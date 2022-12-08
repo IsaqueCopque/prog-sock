@@ -1,6 +1,6 @@
 import threading
 import proxy
-# import server
+import server
 
 # Variáveis Globais
 N_SERVERS = 5       #quantidade de servidores locais
@@ -10,15 +10,15 @@ HEADER = 1024         #tamanho da primeira mensagem
 # ------
 
 #---Funções---
-# def start_servers():
-#     """
-#     Inicia os servidores locais.
-#     """
-#     for i in range(N_SERVERS):
-#         print(f"-> Iniciando servidor {i+1} na porta {PORT_PROXY+i+1}.")
-#         serverThread = threading.Thread(target = server.start_server, args=(PORT_PROXY+i+1))
-#         serverThread.start() 
-#     print(f"-> {N_SERVERS} servidores iniciados.")
+def start_servers():
+    """
+    Inicia os servidores locais.
+    """
+    for i in range(N_SERVERS):
+        print(f"-> Iniciando servidor {i+1} na porta {PORT_PROXY+i+1}.")
+        serverThread = threading.Thread(target = server.start_server, args=(PORT_PROXY+i+1))
+        serverThread.start() 
+    print(f"-> {N_SERVERS} servidores iniciados.")
 
 def start_proxy():
     """
