@@ -37,7 +37,6 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
         op = op.split(" ") #[OP, FileName, FileSize, fLevel]
         op[2] = int(op[2])
         op[3] = int(op[3])
-        print(op)
         if op[0] == "D": # Se depósito
             if op[3] > N_SERVERS or op[3]<=0: #Se nível de tolerância maior que n servidores
                 res, resLength = formata_resposta("[Proxy] -> Nível de tolerância não suportado")
@@ -45,50 +44,34 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
                 connec.send(res) #envia resposta
                 connec.close()
             else: #Envia para os (fLevel) servidores o arquivo
-                #file = connec.recv(op[2]) #recebe o arquivo do cliente
-                #sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 success = True
                 data_received = 0
                 serverSockets = []
-                print("hmm")
-                for i in range(1,int(op[3])):
+                for i in range(int(op[3])):
                     sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    print("connect")
-                    sockServer.connect((HOST, PORT+i))
+                    sockServer.connect((HOST, PORT+i+1))
+                    req, reqLength = formata_resposta(f"{op[0]} {op[1]} {op[2]}" )
+                    sockServer.send(reqLength)          #envia tamanho da requisição
+                    sockServer.send(req)                #envia requisição
+                    #sockServer.send(f"{op[0]} {op[1]} {op[2]}".encode('utf-8'))
                     serverSockets.append(sockServer)
-                while op[2] > data_received:
+                while int(op[2]) > data_received:
                     bytes_read = connec.recv(1024)
-                    print(bytes_read)
                     if not bytes_read:
                         break
                     for sock in serverSockets:
                         sock.send(bytes_read)
                     data_received += 1024
+                print("send success message")
                 for sock in serverSockets:
-                    res = sock.recv(1024).decode('utf-8')
-                    decRes = res.split(':')
+                    resLength = sock.recv(1024).decode('utf-8')
+                    res = sock.recv(int(resLength)).decode('utf-8')
+                    decRes = res.split(':')[0]
                     if decRes == 'Sucesso':
                         success = True
                     else:
                         success = False
                     sock.close()
-                # for i in range(1,op[3]+1): #Envia para cada (fLevel) servidores
-                #     sockServer.connect((HOST,PORT+i))   #conecta ao servidor
-                #     req, reqLength = formata_resposta( f"{op[0]} {op[1]} {op[2]}")
-                #     sockServer.send(reqLength)          #envia tamanho da requisição
-                #     sockServer.send(req)                #envia requisição
-                #     sockServer.send(file)               #envia arquivo
-                #     resLength = sockServer.recv(1024)   #recebe tamanho da resposta
-                #     res = sockServer.recv(resLength)    #recebe resposta
-                #     decRes = res.decode("utf-8")        #decodifica resposta
-                #     decRes = res.split(":")             #separa resposta (Code: Msg)
-                #     if decRes[0] != "Sucesso":          #se falhou para algum servidor
-                #         connec.send(resLength)          #tamanho msg para cliente
-                #         connec.send(res)                #msg de falha para cliente
-                #         sockServer.close()              #encerra conexão com servidor
-                #         success = False
-                #         break
-                #     sockServer.close()                  #encerra conexão com servidor
                 if success:                             #msg de sucesso para cliente
                     res, resLength = formata_resposta("[Proxy] -> Sucesso ao depositar arquivo.")
                     connec.send(resLength)         
@@ -96,28 +79,37 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
                 connec.close()                          #encerra conexão cliente
         
         else: # Se recuperação op = [OP, FileName]
-            sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             found = False
             for i in range(1,N_SERVERS+1): #procura em todos servidores
+                sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sockServer.connect((HOST,PORT+i))   #conecta ao servidor
-                req, reqLength = formata_resposta( f"{op[0]} {op[1]}" )
+                req, reqLength = formata_resposta( f"{op[0]} {op[1]} 0" )
                 sockServer.send(reqLength)          #envia tamanho da requisição
                 sockServer.send(req)                #envia requisição
-                resLength = sockServer.recv(1024)   #recebe tamanho da resposta
+                resLength = sockServer.recv(1024).decode('utf-8')   #recebe tamanho da resposta
+                resLength = int(resLength)
                 res = sockServer.recv(resLength)    #recebe resposta
                 decRes = res.decode("utf-8")        #decodifica resposta
-                decRes = res.split(":")             #separa resposta (Code: Msg)
+                decRes = decRes.split(":")             #separa resposta (Code: Msg)
                 if decRes[0] == "Encontrado":       #Se encontrou (Encontrado: size)
                     found = True
-                    file = sockServer.recv(int(decRes[1])) #Recebe arquivo
-                    connec.send(decRes[1].encode('utf-8'))#envia tamanho para cliente
-                    connec.send(file)                #envia arquivo para cliente
+                    filesize = int(decRes[1])
+                    data_received = 0
+                    res, resLength = formata_resposta(f"{decRes[0]}:{decRes[1]}")
+                    connec.send(resLength)#envia tamanho para cliente
+                    connec.send(res)
+                    while filesize > data_received:
+                        bytes_read = sockServer.recv(1024)
+                        if not bytes_read:
+                            break
+                        connec.send(bytes_read)
+                        data_received += 1024
                     sockServer.close()              #encerra conexão com servidor
                     break
-            sockServer.close()                  #encerra conexão com servidor
+                sockServer.close()              #encerra conexão com servidor
             if not found:                           #Se não encotrou arquivo -> -1
-                res,resLength = formata_resposta("-1")
-                connec.send(resLength)         
+                res,resLength = formata_resposta("NaoEncontrado:-1")
+                connec.send(resLength)  
                 connec.send(res) 
             connec.close()                          #encerra conexão cliente                
 
