@@ -6,6 +6,9 @@ HOST = socket.gethostbyname(socket.gethostname())
 PORT = 60000
 HEADER = 64
 
+BUFFER_SIZE = 1024
+SEPARATOR = "<SEPARATOR>"
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # ---
 
@@ -44,11 +47,25 @@ def connect_to_server():
         op, arq, fLevel = get_input()
         arqSize = getsize(arq) #tamanho do arquivo a ser enviado
         if op == 'D' or op == 'd': #Depósito
-            send_to_server("Mensagem DEPOSITO") #POR ENQUANTO SÓ MANDA MENSAGEM
+            send_file_to_server(arq, fLevel)
+            #send_to_server("Mensagem DEPOSITO") #POR ENQUANTO SÓ MANDA MENSAGEM
         else: #Recuperação
             send_to_server("Mensagem RECUPERACAO") #POR ENQUANTO SÓ MANDA MENSAGEM
     except Exception as e:
         print("-> Erro ao criar conexão com servidor.", e.__class__)
+
+def send_file_to_server(arq, fLevel):
+    arqSize = getsize(arq) #tamanho do arquivo a ser enviado
+    encData = f"{arq}{SEPARATOR}{arqSize}{SEPARATOR}{fLevel}".encode('utf-8')
+    sock.send(encData)
+    with open(arq, "rb") as f:
+        while True:
+            bytes_read = f.read(BUFFER_SIZE)
+            if not bytes_read:
+                break
+            sock.send(bytes_read)
+    res = sock.recv(1024).decode('utf-8')
+    print(res)
 
 def send_to_server(data):
     """

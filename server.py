@@ -1,11 +1,15 @@
 import socket
 import threading
+from os.path import normpath, getsize
 
 # Variáveis Globais
 HOST = socket.gethostbyname(socket.gethostname())
 PORT = 60000
 MAX_N_CONN = 3 #quantidade maxima de clientes conectados ao servidor
 HEADER = 64 #tamanho da primeira mensagem
+
+BUFFER_SIZE = 1024
+SEPARATOR = "<SEPARATOR>"
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 # ---
@@ -15,7 +19,18 @@ def handle_client(connec,addr):
     Lida com as requisições do cliente. Corpo de thread.
     """
     data = connec.recv(1024).decode('utf-8')
-    print(f"-> Recebido de {addr}: {data}")
+    filename, filesize, fLevel = data.split(SEPARATOR)
+    print(f"-> Recebido de {addr}: {filename} com tamanho {filesize} bytes com nível de tolerância {fLevel}")
+    filename = normpath(f"files/{filename}")
+    filesize = int(filesize)
+    data_sent = 0
+    with open(filename, "wb") as f:
+        while filesize > data_sent:
+            bytes_read = connec.recv(BUFFER_SIZE)
+            if not bytes_read:
+                break
+            f.write(bytes_read)
+            data_sent += BUFFER_SIZE
     resposta = "Servidor diz: MSG recebida, encerrando conexão"
     resposta = resposta.encode('utf-8')
     connec.send(resposta)
