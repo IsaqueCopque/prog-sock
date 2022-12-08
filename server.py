@@ -12,6 +12,7 @@ SERVER_FOLDERS = "server"
 
 def save_file(connec, filename, filesize, foldername):
     filename = normpath(f"{SERVER_FOLDERS}/{foldername}/{filename}")
+
     filesize = int(filesize)
     data_received = 0
     with open(filename, "wb") as f:
@@ -24,6 +25,7 @@ def save_file(connec, filename, filesize, foldername):
 
 def get_file(connec, filename, foldername):
     if not check_file(f"{SERVER_FOLDERS}/{foldername}/{filename}"): #não encotrado
+
         res,resLength = formata_resposta("NaoEncontrado:")
         connec.send(resLength) #retorna tamanho da resposta
         connec.send(res) #retorna a resposta
@@ -81,3 +83,4 @@ def start_server(PORT):
             delete_file(connec,filename, PORT)
             
         connec.close()
+

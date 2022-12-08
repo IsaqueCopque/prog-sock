@@ -10,6 +10,7 @@ HEADER = 1024         #tamanho da primeira mensagem
 # ------
 
 # ---Funções---
+
 def start_servers():
     """
     Inicia os servidores locais.

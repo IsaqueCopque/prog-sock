@@ -8,6 +8,7 @@ HOST = socket.gethostbyname(socket.gethostname())
 PORT = 60000
 USR_FOLDER = "local"
 
+
 # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # ---
 
@@ -82,5 +83,6 @@ try:
             sock.send(req)
             print("f")
             get_file_from_server(arq)
+
 except Exception as e:
     print("-> Erro ao criar conexão com servidor.", e.__class__)

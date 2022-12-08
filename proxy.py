@@ -31,8 +31,6 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
     Lida com as requisições do cliente. Corpo de thread.
     """
     try:
-        # connec, addr = sock.accept()
-
         resLength = connec.recv(1024).decode('utf-8')
         resLength = int(resLength)
         op = connec.recv(resLength).decode('utf-8') #recebe a operação
@@ -74,23 +72,6 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
                     else:
                         success = False
                     sock.close()
-                # for i in range(1,op[3]+1): #Envia para cada (fLevel) servidores
-                #     sockServer.connect((HOST,PORT+i))   #conecta ao servidor
-                #     req, reqLength = formata_resposta( f"{op[0]} {op[1]} {op[2]}")
-                #     sockServer.send(reqLength)          #envia tamanho da requisição
-                #     sockServer.send(req)                #envia requisição
-                #     sockServer.send(file)               #envia arquivo
-                #     resLength = sockServer.recv(1024)   #recebe tamanho da resposta
-                #     res = sockServer.recv(resLength)    #recebe resposta
-                #     decRes = res.decode("utf-8")        #decodifica resposta
-                #     decRes = res.split(":")             #separa resposta (Code: Msg)
-                #     if decRes[0] != "Sucesso":          #se falhou para algum servidor
-                #         connec.send(resLength)          #tamanho msg para cliente
-                #         connec.send(res)                #msg de falha para cliente
-                #         sockServer.close()              #encerra conexão com servidor
-                #         success = False
-                #         break
-                #     sockServer.close()                  #encerra conexão com servidor
                 if success:                             #msg de sucesso para cliente
                     res, resLength = formata_resposta("[Proxy] -> Sucesso ao depositar arquivo.")
                     connec.send(resLength)         
