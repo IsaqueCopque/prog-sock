@@ -16,7 +16,7 @@ def start_server(PORT, N_SERVERS, MAX_N_CONN, HEADER):
         if (threading.active_count() - 2) < MAX_N_CONN: #limita o número de conexões a MAX_N_CONN
                                                         # -2 threads = Thread main e thread Proxy
             connec, addr = sock.accept()
-            thread = threading.Thread(target= handle_client, args=(connec,addr, HEADER, N_SERVERS, PORT, HOST))
+            thread = threading.Thread(target= handle_client, args=(connec, HEADER, N_SERVERS, PORT, HOST))
             thread.start()
             print(f"[Proxy] -> TCP estabelecido com {addr}. Total de clientes ativos = ({threading.active_count() - 2}).") 
         else: #Se ultrapassa limite, aceita conexão para apenas informar rejeição
@@ -25,7 +25,7 @@ def start_server(PORT, N_SERVERS, MAX_N_CONN, HEADER):
             connec.send(res.encode('utf-8'))
             connec.close() #encerra conexão
 
-def handle_client(connec,addr, HEADER, N_SERVERS, PORT, HOST):
+def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
     """
     Lida com as requisições do cliente. Corpo de thread.
     """
@@ -36,19 +36,18 @@ def handle_client(connec,addr, HEADER, N_SERVERS, PORT, HOST):
         op[3] = int(op[3])
 
         if op[0] == "D": # Se depósito
-            if op[3] > N_SERVERS or op[3]<=0: #Se nível de tolerância maior que n servidores
+            if op[3] > N_SERVERS or op[3]<0: #Se nível de tolerância maior que n servidores
                 res, resLength = formata_resposta("[Proxy] -> Nível de tolerância não suportado")
                 connec.send(resLength) #envia tamanho da resposta
                 connec.send(res) #envia resposta
                 connec.close()
             else: #Envia para os (fLevel) servidores o arquivo
-                file = connec.recv(op[2]) #recebe o arquivo
-                #........ ver como recebe
+                file = connec.recv(op[2]) #recebe o arquivo do cliente
                 sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 success = True
-                for i in range(1,op[3]+1): #Envia para cada (fLevel) servidores
+                for i in range(1,op[3]+1): #Envia para (fLevel) servidores
                     sockServer.connect((HOST,PORT+i))   #conecta ao servidor
-                    req, reqLength = formata_resposta( f"{op[0]} {op[1]} {op[2]}".encode("uft-8") )
+                    req, reqLength = formata_resposta( f"{op[0]} {op[1]} {op[2]}")
                     sockServer.send(reqLength)          #envia tamanho da requisição
                     sockServer.send(req)                #envia requisição
                     sockServer.send(file)               #envia arquivo
@@ -63,10 +62,17 @@ def handle_client(connec,addr, HEADER, N_SERVERS, PORT, HOST):
                         success = False
                         break
                     sockServer.close()                  #encerra conexão com servidor
-                if success:                             #msg de sucesso para cliente
+
+                if success:  #sucesso ao depositar, atualiza o flevel deletando dos demais                         
                     res, resLength = formata_resposta("[Proxy] -> Sucesso ao depositar arquivo.")
                     connec.send(resLength)         
-                    connec.send(res)                
+                    connec.send(res) 
+                    for i in range(op[3]+1, N_SERVERS+1): # de flevel+1 até N_servers, deleta
+                        sockServer.connect((HOST,PORT+i))
+                        req, reqLength = formata_resposta( f"A {op[1]}")
+                        sockServer.send(reqLength) 
+                        sockServer.send(req)
+                        sockServer.close()
                 connec.close()                          #encerra conexão cliente
         
         else: # Se recuperação op = [OP, FileName]
@@ -74,7 +80,7 @@ def handle_client(connec,addr, HEADER, N_SERVERS, PORT, HOST):
             found = False
             for i in range(1,N_SERVERS+1): #procura em todos servidores
                 sockServer.connect((HOST,PORT+i))   #conecta ao servidor
-                req, reqLength = formata_resposta( f"{op[0]} {op[1]}".encode("uft-8") )
+                req, reqLength = formata_resposta( f"{op[0]} {op[1]}" )
                 sockServer.send(reqLength)          #envia tamanho da requisição
                 sockServer.send(req)                #envia requisição
                 resLength = sockServer.recv(1024)   #recebe tamanho da resposta
@@ -83,9 +89,9 @@ def handle_client(connec,addr, HEADER, N_SERVERS, PORT, HOST):
                 decRes = res.split(":")             #separa resposta (Code: Msg)
                 if decRes[0] == "Encontrado":       #Se encontrou (Encontrado: size)
                     found = True
-                    res = sockServer.recv(int(decRes[1]))
-                    connec.send(int(decRes[1]))     #envia tamanho para cliente
-                    connec.send(res)                #envia arquivo para cliente
+                    file = sockServer.recv(int(decRes[1])) #Recebe arquivo
+                    connec.send(decRes[1].encode('utf-8'))#envia tamanho para cliente
+                    connec.send(file)                #envia arquivo para cliente
                     sockServer.close()              #encerra conexão com servidor
                     break
             sockServer.close()                  #encerra conexão com servidor
