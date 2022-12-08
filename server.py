@@ -1,6 +1,7 @@
 import socket
 import threading
 from os.path import normpath, getsize
+from utils import check_file
 
 # Variáveis Globais
 HOST = socket.gethostbyname(socket.gethostname())
@@ -14,23 +15,43 @@ SEPARATOR = "<SEPARATOR>"
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
 # ---
 
+def save_file(connec, filename, filesize):
+    filename = normpath(f"files/{filename}")
+    filesize = int(filesize)
+    data_received = 0
+    with open(filename, "wb") as f:
+        while filesize > data_received:
+            bytes_read = connec.recv(BUFFER_SIZE)
+            if not bytes_read:
+                break
+            f.write(bytes_read)
+            data_received += BUFFER_SIZE
+
+def get_file(connec, filename):
+    if not check_file(f"files/{filename}"):
+        connec.send(f"False{SEPARATOR}0".encode('utf-8'))
+    else: 
+        filesize = getsize(f"files/{filename}")
+        connec.send(f"True{SEPARATOR}{filesize}".encode('utf-8'))
+        with open(f"files/{filename}", "rb") as f:
+            while True:
+                bytes_read = f.read(BUFFER_SIZE)
+                if not bytes_read:
+                    break
+                connec.sendall(bytes_read)
+
 def handle_client(connec,addr):
     """
     Lida com as requisições do cliente. Corpo de thread.
     """
     data = connec.recv(1024).decode('utf-8')
-    filename, filesize, fLevel = data.split(SEPARATOR)
-    print(f"-> Recebido de {addr}: {filename} com tamanho {filesize} bytes com nível de tolerância {fLevel}")
-    filename = normpath(f"files/{filename}")
-    filesize = int(filesize)
-    data_sent = 0
-    with open(filename, "wb") as f:
-        while filesize > data_sent:
-            bytes_read = connec.recv(BUFFER_SIZE)
-            if not bytes_read:
-                break
-            f.write(bytes_read)
-            data_sent += BUFFER_SIZE
+    op, filename, filesize, fLevel = data.split(SEPARATOR)
+    if op == 'd':
+        print(f"-> Recebido de {addr}: {filename} com tamanho {filesize} bytes com nível de tolerância {fLevel}\n")
+        save_file(connec, filename, filesize)
+    if op == 'r':
+        print(f"Recebido de {addr}: baixar {filename}\n")
+        get_file(connec, filename)
     resposta = "Servidor diz: MSG recebida, encerrando conexão"
     resposta = resposta.encode('utf-8')
     connec.send(resposta)
