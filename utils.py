@@ -11,3 +11,13 @@ def check_file(arq):
             return exists(arq)
     else:
         return False
+
+def formata_resposta(res):
+    """
+    Formata a resposta, devolve mensagem formatada e seu tamanho. 
+    """
+    resMsg = res.encode('utf-8')
+    msgLength = len(resMsg)
+    sendLength = str(msgLength).encode('utf-8')
+    sendLength += b' ' * (1024 - len(sendLength))
+    return resMsg, sendLength
