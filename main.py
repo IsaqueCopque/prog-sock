@@ -6,7 +6,6 @@ import server
 N_SERVERS = 5       #quantidade de servidores locais
 MAX_N_CONN = 3      #quantidade máxima de clientes conectados ao servidor proxy
 PORT_PROXY = 60000  #porta para o servidor proxy
-HEADER = 1024         #tamanho da primeira mensagem
 # ------
 
 # ---Funções---
@@ -32,7 +31,6 @@ def start_proxy():
             PORT_PROXY,
             N_SERVERS,
             MAX_N_CONN,
-            HEADER,
             )
     )
     proxyThread.start()

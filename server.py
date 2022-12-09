@@ -49,7 +49,6 @@ def start_server(PORT):
     """
     Inicia o servidor.
     """
-    print(f"TESTA PORTA SERVIDOR = {PORT}")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((HOST, PORT))
     sock.listen()
@@ -61,7 +60,7 @@ def start_server(PORT):
         data = connec.recv(resLength).decode('utf-8')
         op, filename, filesize = data.split(" ")
         if op == 'D': #Depositar
-            print(f"[{PORT}]-> Recebido: {filename} com tamanho {filesize} bytes.\n")
+            print(f"[{PORT}]-> Recebido: {filename} com tamanho {filesize} bytes.")
             if not exists(f"{SERVER_FOLDERS}/{PORT}"):
                 os.makedirs(f"{SERVER_FOLDERS}/{PORT}")
             try:
@@ -75,12 +74,11 @@ def start_server(PORT):
                 connec.send(res) #retorna a resposta
 
         if op == "R":# Recuperar
-            print(f"[{PORT}]Recebido: Recuperar {filename}\n")
+            print(f"[{PORT}]Recebido: Recuperar {filename}")
             get_file(connec, filename, PORT)
 
         if op == 'A': #Deletar
-            print(f"[{PORT}]Recebido: Deletar {filename}\n")
-            delete_file(connec,filename, PORT)
+            print(f"[{PORT}]Recebido: Deletar {filename}")
+            delete_file(filename, PORT)
             
         connec.close()
-

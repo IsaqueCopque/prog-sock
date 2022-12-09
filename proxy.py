@@ -2,7 +2,7 @@ import socket
 import threading
 from utils import formata_resposta
 
-def start_server(PORT, N_SERVERS, MAX_N_CONN, HEADER):
+def start_server(PORT, N_SERVERS, MAX_N_CONN):
     """
     Inicia servidor proxy. Corpo de thread invocado por start_proxy em main.py.
     """
@@ -17,16 +17,16 @@ def start_server(PORT, N_SERVERS, MAX_N_CONN, HEADER):
         if (threading.active_count() - 2 - N_SERVERS) < MAX_N_CONN: #limita o número de conexões a MAX_N_CONN
                                                         # -2 threads = Thread main e thread Proxy
             connec, addr = sock.accept()
-            thread = threading.Thread(target= handle_client, args=(connec, HEADER, N_SERVERS, PORT, HOST))
+            thread = threading.Thread(target= handle_client, args=(connec, N_SERVERS, PORT, HOST))
             thread.start()
             print(f"[Proxy] -> TCP estabelecido com {addr}. Total de clientes ativos = ({threading.active_count() - 2 - N_SERVERS}).") 
         else: #Se ultrapassa limite, aceita conexão para apenas informar rejeição
-            connec = sock.accept() 
+            connec = sock.accept()[0]
             res = "[Proxy] -> Conexão rejeitada: Limite de conexões atingido."
             connec.send(res.encode('utf-8'))
             connec.close() #encerra conexão
 
-def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
+def handle_client(connec, N_SERVERS, PORT, HOST):
     """
     Lida com as requisições do cliente. Corpo de thread.
     """
@@ -38,7 +38,7 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
         op[2] = int(op[2])
         op[3] = int(op[3])
         if op[0] == "D": # Se depósito
-            if op[3] > N_SERVERS or op[3]<=0: #Se nível de tolerância maior que n servidores
+            if op[3] > N_SERVERS or op[3]<0: #Se nível de tolerância maior que n servidores
                 res, resLength = formata_resposta("[Proxy] -> Nível de tolerância não suportado")
                 connec.send(resLength) #envia tamanho da resposta
                 connec.send(res) #envia resposta
@@ -47,22 +47,20 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
                 success = True
                 data_received = 0
                 serverSockets = []
-                for i in range(int(op[3])):
+                for i in range(op[3]):
                     sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sockServer.connect((HOST, PORT+i+1))
                     req, reqLength = formata_resposta(f"{op[0]} {op[1]} {op[2]}" )
                     sockServer.send(reqLength)          #envia tamanho da requisição
                     sockServer.send(req)                #envia requisição
-                    #sockServer.send(f"{op[0]} {op[1]} {op[2]}".encode('utf-8'))
                     serverSockets.append(sockServer)
-                while int(op[2]) > data_received:
+                while op[2] > data_received:
                     bytes_read = connec.recv(1024)
                     if not bytes_read:
                         break
                     for sock in serverSockets:
                         sock.send(bytes_read)
                     data_received += 1024
-                print("send success message")
                 for sock in serverSockets:
                     resLength = sock.recv(1024).decode('utf-8')
                     res = sock.recv(int(resLength)).decode('utf-8')
@@ -72,9 +70,15 @@ def handle_client(connec, HEADER, N_SERVERS, PORT, HOST):
                     else:
                         success = False
                     sock.close()
-                if success:                             #msg de sucesso para cliente
+                if success: 
+                    for i in range(op[3]+1, N_SERVERS+1):#atualiza numero de copias
+                        sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        sockServer.connect((HOST, PORT+i))
+                        req, reqLength = formata_resposta(f"A {op[1]} 0")
+                        sockServer.send(reqLength)          #envia tamanho da requisição
+                        sockServer.send(req)                #envia requisição
                     res, resLength = formata_resposta("[Proxy] -> Sucesso ao depositar arquivo.")
-                    connec.send(resLength)         
+                    connec.send(resLength)  #envia msg de sucesso para cliente       
                     connec.send(res)                
                 connec.close()                          #encerra conexão cliente
         

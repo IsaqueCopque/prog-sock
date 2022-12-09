@@ -7,9 +7,6 @@ from utils import check_file, formata_resposta
 HOST = socket.gethostbyname(socket.gethostname())
 PORT = 60000
 USR_FOLDER = "local"
-
-
-# sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # ---
 
 def get_input():
@@ -18,16 +15,20 @@ def get_input():
     Retorna Operação, Nome de Arquivo, Nível de Tolerância
     """
     while True:
-        op = input("Informe a operação a ser realizada: (D) Depósito (R) Recuperação\n")
-        if op == 'D' or op == 'd' or op == 'R' or op == 'r':
-            arq = input("Informe o arquivo a ser armazenado: ")
-            if (op == 'D' or op == 'd') and not check_file(arq): #Arquivo inválido
+        op = input("Informe a operação a ser realizada (D) Depósito (R) Recuperação (E) Encerrar: ")
+        op = op.upper()
+        nomeOp = "armazenado" if op == "D" else "recuperado"
+        if op == 'D' or op == 'R':
+            arq = input(f"Informe o arquivo a ser {nomeOp}: ")
+            if (op == 'D') and not check_file(arq): #Arquivo inválido
                 print("Arquivo inválido")
                 continue
             fLevel = None
-            if op == 'D' or op == 'd':
+            if op == 'D':
                 fLevel = input("Informe o nível de tolerância a falhas: ")
             return op,arq,fLevel
+        if op == 'E':
+            return op, None, None
 
 def send_file_to_server(arq, sock):
     with open(arq, "rb") as f:
@@ -68,7 +69,7 @@ try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((HOST,PORT))
         op, arq, fLevel = get_input()
-        if op == 'D' or op == 'd': #Depósito
+        if op == 'D': #Depósito
             arqSize = getsize(arq) #tamanho do arquivo a ser enviado
             req, reqlength = formata_resposta(f"D {arq} {arqSize} {fLevel}")
             sock.send(reqlength)
@@ -77,12 +78,12 @@ try:
             resLength = sock.recv(1024).decode('utf-8')
             res = sock.recv(int(resLength))
             print(res.decode('utf-8'))
-        else: #Recuperação
+        elif op == 'R': #Recuperação
             req, reqlength = formata_resposta(f"R {arq} 0 0")
             sock.send(reqlength)
             sock.send(req)
-            print("f")
             get_file_from_server(arq)
-
+        else:
+            break
 except Exception as e:
     print("-> Erro ao criar conexão com servidor.", e.__class__)
