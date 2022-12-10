@@ -1,4 +1,4 @@
-#Trabalho de sockets - Redes de Computadores - MATA 59
+# Trabalho de sockets - Redes de Computadores - MATA 59
 
 Alunos: Isaque Copque, João Pedro Fernandes(219217088), Matheus Novais, Matheus Guimarães
 
@@ -6,7 +6,7 @@ Professor: Gustavo Gustavo Bittencourt Figueiredo
 
 ---
 
-##Requisitos
+## Requisitos
 
 Este projeto foi criado para o trabalho de sockets de Redes de Computadores. Para rodar o projeto é necessário ter a linguagem Python[https://www.python.org] instalada.
 
@@ -26,4 +26,4 @@ ou
 python3 main.py
 ```
 
-###Modo de depósito
+### Modo de depósito
