@@ -52,14 +52,14 @@ def handle_client(connec, N_SERVERS, PORT, HOST, addr):
                     sockServer.send(reqLength)          #envia tamanho da requisição
                     sockServer.send(req)                #envia requisição
                     serverSockets.append(sockServer)
-                while op[2] > data_received:
+                while op[2] > data_received: #enquanto não receber todo arquivo do cliente
                     bytes_read = connec.recv(1024)
                     if not bytes_read:
                         break
-                    for sock in serverSockets:
+                    for sock in serverSockets: #para cada servidor envia a parte lida
                         sock.send(bytes_read)
                     data_received += 1024
-                for sock in serverSockets:
+                for sock in serverSockets:  #Recebe uma resposta de cada um dos servidores
                     resLength = sock.recv(1024).decode('utf-8')
                     res = sock.recv(int(resLength)).decode('utf-8')
                     decRes = res.split(':')[0]
@@ -68,16 +68,18 @@ def handle_client(connec, N_SERVERS, PORT, HOST, addr):
                     else:
                         success = False
                     sock.close()
-                if success: 
-                    for i in range(op[3]+1, N_SERVERS+1):#atualiza numero de copias
+                if success: #atualiza numero de copias    
+                    for i in range(op[3]+1, N_SERVERS+1):
                         sockServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         sockServer.connect((HOST, PORT+i))
                         req, reqLength = formata_resposta(f"A {op[1]} 0")
                         sockServer.send(reqLength)          #envia tamanho da requisição
                         sockServer.send(req)                #envia requisição
-                    res, resLength = formata_resposta("[Proxy] -> Sucesso ao depositar arquivo.")
-                    connec.send(resLength)  #envia msg de sucesso para cliente       
-                    connec.send(res)                
+                #responde para o cliente sobre o resultado do depósito
+                resMsg = "[Proxy] -> Sucesso ao depositar arquivo." if success else "[Proxy] -> Falha ao depositar arquivo."
+                res, resLength = formata_resposta(resMsg)
+                connec.send(resLength)      
+                connec.send(res)                
                 connec.close()                          #encerra conexão cliente
         
         else: # Se recuperação op = [OP, FileName]
