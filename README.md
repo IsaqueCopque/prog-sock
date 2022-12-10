@@ -12,9 +12,9 @@ Este projeto foi criado para o trabalho de sockets de Redes de Computadores. Par
 
 ---
 ## Objetivo
-A aplicação segue o modelo cliente-servidor. Através dela o usuário consegue depositar arquivos com replicação e recuperar esses arquivos utilizando os dois modos de depósito e recuperação.
+A aplicação segue o modelo cliente-servidor. Através dela o usuário consegue depositar arquivos com replicação e recuperar esses arquivos utilizando os modos de depósito e recuperação.
 
-Para iniciar a aplicação deve-se entrar na pasta do projeto e executar o comando:
+Para iniciar a aplicação, deve-se entrar na pasta do projeto e executar o comando:
 
 ``` bash
 python main.py
@@ -44,9 +44,8 @@ python3 cliente.py
 Então você deve escolher D para depósito ou R para recuperação.
 ### Modo de Depósito
 
-Para realizar um depósito você precisa ter o arquivo na pasta raiz do projeto, então quando for solicitada a entrada do arquivo pra ser depositado 
-você precisa passar o nome do arquivos com seu caminho, caso tem criado uma pasta para organizar(exemplo: ./deposito/teste.txt),
-então será solicitado o nível de tolerância a falhas do arquivo, ele representa a quantidade de dispositivos em que ficarão salvas as cópias do documento. Para salvar os documentos, a aplicação cria uma pasta server e um servidor e uma pasta, com a porta do servidor como nome, para salvar cada cópia do documento em uma dessas pastas.
+Para realizar um depósito você precisa ter o arquivo na pasta raiz do projeto, então quando for solicitada a entrada do arquivo para ser depositado, você precisa passar o nome do arquivo com sua extensão.
+Então será solicitado o nível de tolerância a falhas do arquivo, ele representa a quantidade de dispositivos em que ficarão salvas as cópias do documento. Para salvar os arquivos, a aplicação cria, para cada servidor, uma pasta server com a porta do servidores como nome, e nelas armazena as cópias dos arquivos.
 
 ### Modo de Recuperação
 
