@@ -1,6 +1,6 @@
 # Trabalho de sockets - Redes de Computadores - MATA 59
 
-Alunos: Isaque Copque(219120256), João Pedro Fernandes(219217088), Matheus Novais(219115204), Matheus Guimarães()
+Alunos: Isaque Copque(219120256), João Pedro Fernandes(219217088), Matheus Novais(219115204), Matheus Guimarães(219116051)
 
 Professor: Gustavo Bittencourt Figueiredo
 
