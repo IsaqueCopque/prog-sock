@@ -8,7 +8,7 @@ Professor: Gustavo Bittencourt Figueiredo
 
 ## Requisitos
 
-Este projeto foi criado para o trabalho de sockets de Redes de Computadores. Para rodar o projeto é necessário ter a linguagem [Python](https://www.python.org) instalada.
+Este projeto foi criado para o trabalho de sockets de Redes de Computadores. Para rodar o projeto é necessário ter a linguagem [Python](https://www.python.org) instalada, este projeto também utiliza threads para executar os servidores.
 
 ---
 ## Objetivo
@@ -26,7 +26,7 @@ ou
 python3 main.py
 ```
 
-Este comando irá iniciar todos os servidores inclusive o servidor de proxy.
+Este comando irá iniciar todos os servidores inclusive o servidor de proxy .
 
 Agora, que os servidores estão rodando, você poderá utilizar as funcionalidades da aplicação de depósito ou recuperação de arquivos.
 
@@ -42,7 +42,12 @@ ou
 python3 cliente.py
 ```
 Então você deve escolher D para depósito ou R para recuperação.
-### Modo de depósito
+### Modo de Depósito
 
-Para realizar um depósito você precisa ter o arquivo na pasta raiz do projeto
- 
+Para realizar um depósito você precisa ter o arquivo na pasta raiz do projeto, então quando for solicitada a entrada do arquivo pra ser depositado 
+você precisa passar o nome do arquivos com seu caminho, caso tem criado uma pasta para organizar(exemplo: ./deposito/teste.txt),
+então será solicitado o nível de tolerância a falhas do arquivo, ele representa a quantidade de dispositivos em que ficarão salvas as cópias do documento. Para salvar os documentos, a aplicação cria uma pasta server e um servidor e uma pasta, com a porta do servidor como nome, para salvar cada cópia do documento em uma dessas pastas.
+
+### Modo de Recuperação
+
+Para recuperar um arquivo, ao escolher a opção de recuperação, a aplicação solicitará que você digite o nome do arquivo a ser recuperado, caso ele seja encontrado em um dos servidores existentes, a aplicação criará uma pasta local e colocará os arquivos recuperados nela, caso não seja econtrado será informada a não existência do arquivo.
