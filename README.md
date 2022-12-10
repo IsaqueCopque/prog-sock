@@ -2,13 +2,13 @@
 
 Alunos: Isaque Copque(219120256), João Pedro Fernandes(219217088), Matheus Novais(219115204), Matheus Guimarães()
 
-Professor: Gustavo Gustavo Bittencourt Figueiredo
+Professor: Gustavo Bittencourt Figueiredo
 
 ---
 
 ## Requisitos
 
-Este projeto foi criado para o trabalho de sockets de Redes de Computadores. Para rodar o projeto é necessário ter a linguagem Python[(https://www.python.org)] instalada.
+Este projeto foi criado para o trabalho de sockets de Redes de Computadores. Para rodar o projeto é necessário ter a linguagem [Python](https://www.python.org) instalada.
 
 ---
 ## Objetivo
