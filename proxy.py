@@ -39,11 +39,14 @@ def handle_client(connec, N_SERVERS, PORT, HOST, addr):
         op[3] = int(op[3])
         if op[0] == "D": # Se depósito
             if op[3] > N_SERVERS or op[3]<0: #Se nível de tolerância maior que n servidores
-                res, resLength = formata_resposta("[Proxy] -> Nível de tolerância não suportado")
+                res, resLength = formata_resposta(f"Negado: Tolerância deve estar entre 0 e {N_SERVERS}")
                 connec.send(resLength) #envia tamanho da resposta
                 connec.send(res) #envia resposta
                 connec.close()
             else: #Envia para os (fLevel) servidores o arquivo
+                res, resLength = formata_resposta(f"Permitido:") #Permite o envio
+                connec.send(resLength) #envia tamanho da resposta
+                connec.send(res) #envia resposta
                 success = True
                 data_received = 0
                 serverSockets = []
@@ -118,6 +121,6 @@ def handle_client(connec, N_SERVERS, PORT, HOST, addr):
             connec.close()                          #encerra conexão cliente                
 
     except Exception as e:
-        print(f"[Proxy] -> Encerrada conexão com ${addr[0]}.")
+        print(f"[Proxy] -> Encerrada conexão com {addr[0]}.")
 
     return None

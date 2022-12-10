@@ -74,10 +74,17 @@ try:
             req, reqlength = formata_resposta(f"D {arq} {arqSize} {fLevel}")
             sock.send(reqlength)
             sock.send(req)
-            send_file_to_server(arq, sock)
-            resLength = sock.recv(1024).decode('utf-8')
-            res = sock.recv(int(resLength))
-            print(res.decode('utf-8'))
+            #Recebe resposta se possivel depositar
+            resLength = sock.recv(1024).decode('utf-8') 
+            res = sock.recv(int(resLength)).decode('utf-8')
+            res = res.split(":")
+            if res[0] == "Permitido":
+                send_file_to_server(arq, sock)
+                resLength = sock.recv(1024).decode('utf-8')
+                res = sock.recv(int(resLength))
+                print(res.decode('utf-8'))
+            else:
+                print(f"Servidor não permitiu depósito. Motivo: {res[1]}")
         elif op == 'R': #Recuperação
             req, reqlength = formata_resposta(f"R {arq} 0 0")
             sock.send(reqlength)
