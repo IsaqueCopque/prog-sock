@@ -20,11 +20,6 @@ def start_server(PORT, N_SERVERS, MAX_N_CONN):
             thread = threading.Thread(target= handle_client, args=(connec, N_SERVERS, PORT, HOST, addr))
             thread.start()
             print(f"[Proxy] -> TCP estabelecido com {addr}. Total de clientes ativos = ({threading.active_count() - 2 - N_SERVERS}).") 
-        else: #Se ultrapassa limite, aceita conexão para apenas informar rejeição
-            connec = sock.accept()[0]
-            res = "[Proxy] -> Conexão rejeitada: Limite de conexões atingido."
-            connec.send(res.encode('utf-8'))
-            connec.close() #encerra conexão
 
 def handle_client(connec, N_SERVERS, PORT, HOST, addr):
     """
